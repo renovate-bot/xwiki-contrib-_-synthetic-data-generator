@@ -34,8 +34,8 @@
   <packaging>xar</packaging>
   <version>1.0-SNAPSHOT</version>
   <properties>
-    <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
-    <xwiki.issueManagement.jira.id>SDG</xwiki.issueManagement.jira.id>
+    <xwiki.issueManagement.system>openproject</xwiki.issueManagement.system>
+    <xwiki.issueManagement.url>https://op.xwiki.org/projects/synthetic-data-generator</xwiki.issueManagement.url>
   </properties>
   <developers>
     <developer>
