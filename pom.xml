@@ -31,7 +31,7 @@
   <name>Synthetic Data Generator</name>
   <description>Helper to generate a lot of test data (pages, users, etc.).</description>
   <packaging>xar</packaging>
-  <version>1.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <properties>
     <xwiki.issueManagement.system>openproject</xwiki.issueManagement.system>
     <xwiki.issueManagement.url>https://op.xwiki.org/projects/synthetic-data-generator</xwiki.issueManagement.url>
@@ -49,6 +49,6 @@
     <connection>scm:git:git://github.com/xwiki-contrib/synthetic-data-generator.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/synthetic-data-generator.git</developerConnection>
     <url>https://github.com/xwiki-contrib/synthetic-data-generator</url>
-    <tag>synthetic-data-generator-1.0</tag>
+    <tag>HEAD</tag>
   </scm>
 </project>
