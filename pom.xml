@@ -27,7 +27,6 @@
     <artifactId>parent-platform</artifactId>
     <version>17.10</version>
   </parent>
-  <groupId>org.xwiki.contrib.invoices</groupId>
   <artifactId>synthetic-data-generator</artifactId>
   <name>Synthetic Data Generator</name>
   <description>Helper to generate a lot of test data (pages, users, etc.).</description>
