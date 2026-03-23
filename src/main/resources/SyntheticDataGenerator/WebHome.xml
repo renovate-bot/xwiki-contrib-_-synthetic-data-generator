@@ -136,7 +136,6 @@ public class FillUtils
         sb.append(chunk + '\n\n')
     }
     doc.setContent(sb.toString())
-    println sb.length()
   }
 
   void addBigAttachment(def fileName, def doc, def size)
