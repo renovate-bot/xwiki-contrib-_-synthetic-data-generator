@@ -42,20 +42,20 @@
   #if ("$!targetSpace" == '')
     #set ($targetSpace = 'TestPages')
   #end
-  #set ($usersQuota = $numbertool.integer($request.usersQuota))
-  #set ($documentsQuota = $numbertool.integer($request.documentsQuota))
+  #set ($documentsQuota = $numbertool.toNumber($request.documentsQuota).intValue())
+  #set ($usersQuota = $numbertool.toNumber($request.usersQuota).intValue())
   {{html}}
     &lt;form&gt;
       &lt;dl&gt;
-        &lt;dt&gt;Users&lt;/dt&gt;
-        &lt;dd class="box"&gt;
-          &lt;label&gt;Number of users: &lt;input type="number" name="usersQuota"#if($usersQuota) value="$usersQuota"#end/&gt;&lt;/label&gt;
-        &lt;/dd&gt;
         &lt;dt&gt;Pages&lt;/dt&gt;
         &lt;dd class="box"&gt;
           &lt;label&gt;Target space: &lt;input type="input" name="targetSpace"#if($targetSpace) value="${escapetool.xml($targetSpace)}"#end/&gt;&lt;/label&gt;
           &lt;br/&gt;
           &lt;label&gt;Number of documents: &lt;input type="number" name="documentsQuota"#if($documentsQuota) value="$documentsQuota"#end/&gt;&lt;/label&gt;
+        &lt;/dd&gt;
+        &lt;dt&gt;Users&lt;/dt&gt;
+        &lt;dd class="box"&gt;
+          &lt;label&gt;Number of users: &lt;input type="number" name="usersQuota"#if($usersQuota) value="$usersQuota"#end/&gt;&lt;/label&gt;
         &lt;/dd&gt;
       &lt;/dl&gt;
       &lt;input type="submit" value="Start" /&gt;
