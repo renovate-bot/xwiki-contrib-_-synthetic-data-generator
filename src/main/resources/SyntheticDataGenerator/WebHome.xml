@@ -65,6 +65,23 @@
 
 ----
 
+== Current
+
+{{velocity}}
+#set ($userCount = $services.query.xwql("select count(doc.fullName) from Document doc, doc.object(XWiki.XWikiUsers) as user where doc.name like 'TestUser%'").execute().get(0))
+#set ($hugeDocumentCount = $services.query.xwql("select count(doc.fullName) from Document doc where doc.fullName = '${targetSpace}.HugePage.WebHome'").execute().get(0))
+#set ($bigDocumentCount = $services.query.xwql("select count(doc.fullName) from Document doc where doc.fullName LIKE '${targetSpace}.Big.%.WebHome'").execute().get(0))
+#set ($mediumDocumentCount = $services.query.xwql("select count(doc.fullName) from Document doc where doc.fullName LIKE '${targetSpace}.Medium.%.WebHome'").execute().get(0))
+#set ($totalDocumentCount = $hugeDocumentCount + $bigDocumentCount + $mediumDocumentCount)
+* number of users: **$userCount**
+* number of documents: **$totalDocumentCount**
+** number of huge documents: **$hugeDocumentCount**
+** number of big documents: **$bigDocumentCount**
+** number of medium documents: **$mediumDocumentCount**
+{{/velocity}}
+
+----
+
 {{async context="request.*"}}
 {{box cssClass="floatinginfobox" title="**Contents**"}}{{toc/}}{{/box}}
 
