@@ -194,6 +194,11 @@ fillTool = new FillUtils(services)
 {{/groovy}}
 
 {{velocity output="false"}}
+#set ($pxwiki = $xwiki.xWiki)
+#set ($pxcontext = $xcontext.context)
+#set ($userReferenceResolver = $services.component.getInstance('org.xwiki.user.UserReferenceResolver&lt;org.xwiki.model.reference.DocumentReference&gt;', 'document'))
+#set ($currentUserReference = $userReferenceResolver.resolve($pxcontext.getUserReference()))
+
 ### DOCUMENTS
 #############
 
@@ -262,7 +267,7 @@ fillTool = new FillUtils(services)
     #if ($xwiki.exists($docReference))
       #set ($skipped = $skipped + 1)
     #else
-      #set ($doc = $xwiki.getDocument($docReference))
+      #set ($pdoc = $pxwiki.getDocument($docReference, $pxcontext).clone())
       ## Build a set of random links to other generated documents
       #set ($linksSection = '== Related Documents ==
 
@@ -364,15 +369,19 @@ ${linksSection}
 ")
       #set ($fullContent = "${mediumDocumentContentTemplate}${padding}")
       ##
-      #set ($void = $doc.setContent($fullContent))
-      #set ($void = $doc.setTitle("Generated Document ${i}"))
+      #set ($discard = $pdoc.setContent($fullContent))
+      #set ($discard = $pdoc.setTitle("Generated Document ${i}"))
+      #set ($discard = $pdoc.getAuthors().setCreator($currentUserReference))
+      #set ($discard = $pdoc.getAuthors().setEffectiveMetadataAuthor($currentUserReference))
+      #set ($discard = $pdoc.getAuthors().setOriginalMetadataAuthor($currentUserReference))
+      #set ($discard = $pdoc.getAuthors().setContentAuthor($currentUserReference))
       ##
       ## Objects
       #foreach($i in [1..$maxObjects])
-        #set ($obj = $doc.newObject('XWiki.XWikiComments'))
-        #set ($void = $obj.set('author', $xcontext.user))
-        #set ($void = $obj.set('comment', "This is comment number $i"))
-        #set ($void = $obj.set('date', $datetool.date))
+        #set ($pobject = $pdoc.newObject('XWiki.XWikiComments', $pxcontext))
+        #set ($discard = $pobject.set('author', $pxcontext.getUser(), $pxcontext))
+        #set ($discard = $pobject.set('comment', "This is comment number $i", $pxcontext))
+        #set ($discard = $pobject.set('date', $datetool.date, $pxcontext))
       #end
       ##
       ## Create attachments
@@ -380,11 +389,11 @@ ${linksSection}
         #set ($fileName = "attachment_${i}.txt")
         #set ($attachmentContent = "Attachment $i - ${megabyteTxt}")
         #set ($attachmentContentBytes = $attachmentContent.getBytes('UTF-8'))
-        #set ($discard = $doc.addAttachment($fileName, $attachmentContentBytes))
+        #set ($discard = $pdoc.addAttachment($fileName, $attachmentContentBytes, $pxcontext))
       #end
       ##
       ## Save
-      #set ($void = $doc.save("Auto-generated document ${i}"))
+      #set ($discard = $pxwiki.saveDocument($pdoc, "Auto-generated document ${i}", $pxcontext))
       #set ($created = $created + 1)
     #end
   #end
@@ -403,45 +412,47 @@ ${linksSection}
 ### Users
 #########
 
-#macro (createUser $userDoc $groupObj $filtersQuota $targetFilterSpace)
-  #set($userObj = $userDoc.newObject('XWiki.XWikiUsers'))
-  #set($discard = $userObj.set('first_name', "Test"))
-  #set($discard = $userObj.set('last_name', "User${i}"))
-  #set($discard = $userObj.set('email', "${username}@example.com"))
-  #set($discard = $userObj.set('active', 1))
-  #set($discard = $userDoc.setContent(''))
-  #set($discard = $userDoc.save("Auto-generated user"))
+#macro (createUser $puserDoc $groupDoc $filtersQuota $targetFilterSpace)
+  #set ($puserObj = $puserDoc.newObject('XWiki.XWikiUsers', $pxcontext))
+  #set ($discard = $puserObj.set('first_name', "Test", $pxcontext))
+  #set ($discard = $puserObj.set('last_name', "User${i}", $pxcontext))
+  #set ($discard = $puserObj.set('email', "${username}@example.com", $pxcontext))
+  #set ($discard = $puserObj.set('active', 1, $pxcontext))
+  #set ($discard = $pxwiki.saveDocument($puserDoc, "Auto-generated user", $pxcontext))
   ##
   ## Add user to XWikiAllGroup
-  #set($groupObj = $groupDoc.newObject('XWiki.XWikiGroups'))
-  #set($discard = $groupObj.set('member', "XWiki.${username}"))
+  #set ($groupObj = $groupDoc.newObject('XWiki.XWikiGroups'))
+  #set ($discard = $groupObj.set('member', "XWiki.${username}"))
   ##
   ## Add watched pages
   #if ($filtersQuota &gt; 0)
     ## Get the UserReference
-    #set ($userReference = $userReferenceResolver.resolve($userDoc.documentReference))
+    #set ($userReference = $userReferenceResolver.resolve($puserDoc.getDocumentReference()))
     #foreach ($i in [1..$filtersQuota])
       ## Get the WatchedLocationReference
       #set ($watchedRef = $watchedEntityFactory.createWatchedLocationReference("document:${targetFilterSpace}.Document${i}.WebHome"))
       ## Watch the location
-      #set ($void = $watchedEntitiesManager.watch($watchedRef, $userReference))
+      #set ($discard = $watchedEntitiesManager.watch($watchedRef, $userReference))
     #end
   #end
 #end
 
-#macro (createUsers $index $count $groupObj $filtersQuota $targetFilterSpace)
+#macro (createUsers $index $count $groupDoc $filtersQuota $targetFilterSpace)
   #set ($created = 0)
   #set ($skipped = 0)
-  #set ($created = 0)
   #set ($min = $index + 1)
   #set ($max = $index + $count)
-  #foreach($i in [$min..$max])
+  #foreach ($i in [$min..$max])
     #set ($username = "TestUser${i}")
-    #set ($userReference = "XWiki.${username}")
-    #if (!$xwiki.exists($userReference))
-      #set($userDoc = $xwiki.getDocument($userReference))
+    #set ($userDocReference = "XWiki.${username}")
+    #if (!$xwiki.exists($userDocReference))
+      #set ($puserDoc = $pxwiki.getDocument($userDocReference, $pxcontext).clone())
+      #set ($discard = $puserDoc.getAuthors().setCreator($pxcontext.getUserReference()))
+      #set ($discard = $puserDoc.getAuthors().setEffectiveMetadataAuthor($pxcontext.getUserReference()))
+      #set ($discard = $puserDoc.getAuthors().setOriginalMetadataAuthor($pxcontext.getUserReference()))
+      #set ($discard = $puserDoc.getAuthors().setContentAuthor($pxcontext.getUserReference()))
       ##
-      #createUser($userDoc, $groupObj, $filtersQuota, $targetFilterSpace)
+      #createUser($puserDoc, $groupDoc, $filtersQuota, $targetFilterSpace)
       ##
       #set ($created = $created + 1)
     #else
@@ -450,10 +461,14 @@ ${linksSection}
   #end
   ##
   #if ($created &gt; 0)
-    #set($discard = $groupDoc.save("Add auto-generated users"))
+    #set ($discard = $groupDoc.save("Add auto-generated users"))
   #end
   {{success}}
-    Successfully created **${created}** users with **$filtersQuota** watched pages. **${skipped}** were already created.
+    #if ($filtersQuota &gt; 0)
+      Successfully created **${created}** users with **$filtersQuota** watched pages. **${skipped}** were already created.
+    #else
+      Successfully created **${created}** users. **${skipped}** were already created.
+    #end
   {{/success}}
 #end
 #set ($usersQuota = $numbertool.toNumber($request.usersQuota).intValue())
@@ -500,9 +515,6 @@ $fillTool.begin()
   #set ($totalUsers = 0)
   #set($defaultGroup = 'XWiki.XWikiAllGroup')
   #set($groupDoc = $xwiki.getDocument($defaultGroup))
-  #set($groupObj = $groupDoc.newObject('XWiki.XWikiGroups'))
-  ## Get the DocumentReference -&gt; UserReference resolver
-  #set ($userReferenceResolver = $services.component.getInstance('org.xwiki.user.UserReferenceResolver&lt;org.xwiki.model.reference.DocumentReference&gt;', 'document'))
   ## Get the WatchedEntitiesManager component
   #set ($watchedEntitiesManager = $services.component.getInstance('org.xwiki.notifications.filters.watch.WatchedEntitiesManager'))
   ## Get the WatchedEntityFactory component
@@ -512,7 +524,7 @@ $fillTool.begin()
 
   === 1 user, watching the entire wiki
 
-  #createUsers($totalUsers 1 $groupObj 0)
+  #createUsers($totalUsers 1 $groupDoc 0)
   #set ($totalUsers = 1)
   ## Watch the wiki
   #set ($userReference = $userReferenceResolver.resolve("XWiki.TestUser1"))
@@ -525,13 +537,13 @@ $fillTool.begin()
   #if ($usersQuota &gt; 1)
     === 1 user, watching all the generated medium pages
 
-    #createUsers($totalUsers 1 $groupObj $mediumdocumentsQuota $mediumdocumentsSpace)
+    #createUsers($totalUsers 1 $groupDoc $mediumdocumentsQuota $mediumdocumentsSpace)
     #set ($totalUsers = $totalUsers + 1)
 
     #if ($mediumdocumentsQuota &gt;= 100)
       === 5 users, watching 100 of the generated medium pages
 
-      #createUsers($totalUsers 5 $groupObj 100 $mediumdocumentsSpace)
+      #createUsers($totalUsers 5 $groupDoc 100 $mediumdocumentsSpace)
       #set ($totalUsers = $totalUsers + 1)
 
     #end
